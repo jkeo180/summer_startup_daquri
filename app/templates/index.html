@@ -1,0 +1,441 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#ffffff">
+<title>A Good Time Daiquiri</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fff;color:#1a1a1a;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+:root{--pink:#e8436a;--pink-dark:#c0244a;--pink-pale:#fef0f3;--pink-light:#f9c0ce;--green:#3d8b37;--black:#1a1a1a;--text-2:#6b5b5f;--text-3:#b09ba0;--card:#f9f4f5;--input-bg:#f5f0f1;--border:rgba(0,0,0,0.08);--border-p:rgba(232,67,106,0.25)}
+.app{display:flex;flex-direction:column;height:100%;max-width:480px;margin:0 auto;position:relative;overflow:hidden}
+.page{flex:1;overflow-y:auto;padding:0 16px 90px;display:none;-webkit-overflow-scrolling:touch}
+.page.active{display:block}
+
+/* SPLASH */
+#splash{position:absolute;inset:0;z-index:200;background:#fff;display:flex;flex-direction:column}
+#splash img{width:100%;flex:1;object-fit:cover;object-position:center top;display:block;min-height:0}
+.splash-bottom{background:#fff;padding:20px 24px 40px;flex-shrink:0}
+.splash-sub{font-size:13px;color:var(--text-2);text-align:center;line-height:1.5;margin-bottom:16px}
+.splash-btn{width:100%;padding:16px;background:var(--black);color:#fff;border:none;border-radius:999px;font-size:15px;font-weight:900;letter-spacing:1px;cursor:pointer;font-family:inherit}
+
+/* NAV */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:1px solid var(--border);display:flex;z-index:100;box-shadow:0 -2px 12px rgba(0,0,0,0.06)}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0 12px;border:none;background:none;cursor:pointer;color:var(--text-3);font-size:10px;font-weight:600;font-family:inherit;letter-spacing:0.3px;transition:color 0.12s}
+.nav-btn.active{color:var(--pink)}
+.nav-btn .icon{font-size:20px;line-height:1}
+
+/* PAGE HEADER */
+.page-header{padding:20px 0 14px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.brand-script{font-size:26px;font-weight:700;color:var(--green);font-style:italic}
+.brand-sans{font-size:11px;font-weight:900;color:var(--black);letter-spacing:4px;margin-top:3px}
+
+/* SEARCH */
+.search-wrap{background:var(--input-bg);border-radius:10px;border:0.5px solid var(--border);padding:0 14px;margin-bottom:12px}
+.search-wrap input{width:100%;padding:11px 0;font-size:14px;color:var(--black);background:none;border:none;outline:none;font-family:inherit}
+
+/* CHIPS */
+.chip-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;scrollbar-width:none}
+.chip-row::-webkit-scrollbar{display:none}
+.chip{padding:5px 14px;border-radius:999px;border:1px solid var(--border);background:var(--card);font-size:12px;font-weight:600;color:var(--text-2);cursor:pointer;white-space:nowrap;font-family:inherit;transition:all 0.12s;flex-shrink:0}
+.chip.active{background:var(--pink);border-color:var(--pink);color:#fff;font-weight:800}
+
+/* RECIPE CARDS */
+.card{background:var(--card);border-radius:14px;border:0.5px solid var(--border);margin-bottom:10px;overflow:hidden}
+.card.open{border-color:var(--pink);border-width:1px}
+.card-header{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 16px;cursor:pointer;gap:12px}
+.card-left{flex:1}
+.card-name{font-size:15px;font-weight:800;color:var(--black);margin-bottom:3px}
+.card-desc{font-size:13px;color:var(--text-2);line-height:1.4}
+.card-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
+.badge{padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px}
+.badge-fav{background:var(--pink-pale);color:var(--pink-dark)}
+.badge-new{background:#ebf5ea;color:#2d6b27}
+.badge-mock{background:#eeedfe;color:#534ab7}
+.badge-excl{background:var(--black);color:#fff}
+.badge-cock{background:#faeeda;color:#854f0b}
+.chevron{font-size:10px;color:var(--pink);font-weight:700}
+.card-detail{display:none;padding:0 16px 16px;border-top:1px solid var(--pink-light)}
+.card.open .card-detail{display:block}
+.detail-label{font-size:10px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:var(--pink);margin:14px 0 7px}
+.ing-list{list-style:none}
+.ing-list li{font-size:13px;color:var(--text-2);padding:2px 0 2px 16px;position:relative;line-height:1.5}
+.ing-list li::before{content:'•';position:absolute;left:0;color:var(--pink);font-weight:700}
+.step-list{list-style:none;counter-reset:steps}
+.step-list li{counter-increment:steps;font-size:13px;color:var(--text-2);padding:2px 0 2px 22px;position:relative;line-height:1.5}
+.step-list li::before{content:counter(steps);position:absolute;left:0;top:2px;font-size:11px;font-weight:900;color:var(--pink)}
+.garnish-pill{display:flex;align-items:center;gap:8px;margin-top:12px;padding:8px 12px;background:var(--pink-pale);border-radius:8px;border:1px solid var(--border-p)}
+.garnish-pill strong{font-size:10px;color:var(--pink);text-transform:uppercase;letter-spacing:0.5px;font-weight:900}
+.garnish-pill span{font-size:12px;color:var(--text-2)}
+
+/* CONNECT - SLIDING CARDS */
+.section-label{font-size:10px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:var(--pink);margin:16px 0 10px}
+.prompt-counter-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.prompt-counter{font-size:11px;font-weight:700;color:var(--text-3);letter-spacing:1px}
+.prompt-cat-label{font-size:10px;font-weight:700;color:var(--pink);text-transform:uppercase;letter-spacing:1px}
+
+/* Sliding card container */
+.card-slider{overflow:hidden;border-radius:20px;margin-bottom:16px}
+.card-track{display:flex;transition:transform 0.35s cubic-bezier(0.4,0,0.2,1)}
+.prompt-slide{min-width:100%;background:var(--pink-pale);border-radius:20px;border:1px solid var(--border-p);padding:40px 24px;text-align:center;min-height:220px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.prompt-slide p{font-size:20px;font-weight:700;color:var(--black);line-height:1.5}
+
+.prompt-nav{display:flex;gap:10px;margin-bottom:16px}
+.btn-prev{flex:1;padding:14px;border-radius:999px;border:1px solid var(--border);background:var(--card);font-size:13px;font-weight:700;color:var(--text-2);cursor:pointer;font-family:inherit;transition:all 0.12s}
+.btn-next{flex:1;padding:14px;border-radius:999px;border:none;background:var(--pink);font-size:13px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;transition:opacity 0.12s}
+.btn-next:active,.btn-prev:active{opacity:0.8}
+
+.dot-row{display:flex;justify-content:center;gap:6px;margin-bottom:24px}
+.dot{height:8px;border-radius:999px;background:var(--pink-light);cursor:pointer;transition:all 0.25s}
+.dot.active{background:var(--pink);width:20px}
+.dot:not(.active){width:8px}
+
+/* CONTENT CARDS */
+.content-card{background:var(--card);border-radius:14px;border:0.5px solid var(--border);padding:16px;margin-bottom:10px}
+.content-card h3{font-size:15px;font-weight:800;color:var(--black);margin-bottom:8px}
+.content-card p{font-size:13px;color:var(--text-2);line-height:1.6}
+.step-row{display:flex;gap:12px;align-items:flex-start;margin-top:12px}
+.step-badge{width:26px;height:26px;border-radius:50%;background:var(--pink-pale);border:1px solid var(--border-p);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:var(--pink);flex-shrink:0}
+.step-info strong{display:block;font-size:13px;font-weight:800;color:var(--black)}
+.step-info span{font-size:13px;color:var(--text-2);line-height:1.5}
+.quote-block{border-left:3px solid var(--pink);padding:10px 14px;margin:10px 0}
+.quote-block p{font-size:14px;color:var(--text-2);font-style:italic;line-height:1.6}
+.quote-block cite{display:block;font-size:12px;color:var(--pink);font-weight:700;font-style:normal;margin-top:6px}
+
+/* TABLE */
+.field-label{font-size:10px;font-weight:900;color:var(--black);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;display:block}
+.field-input{width:100%;padding:12px 14px;border-radius:8px;border:1px solid var(--border);background:var(--input-bg);font-size:15px;font-weight:700;color:var(--black);font-family:inherit;outline:none;margin-bottom:16px}
+.field-input:focus{border-color:var(--pink)}
+.btn{width:100%;padding:15px;border-radius:999px;border:none;background:var(--black);color:#fff;font-size:12px;font-weight:900;letter-spacing:1.5px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:16px;transition:opacity 0.12s}
+.btn:disabled{opacity:0.4;cursor:not-allowed}
+.table-hero{background:var(--pink-pale);border-radius:16px;border:1px solid var(--border-p);padding:24px;text-align:center;margin-bottom:20px}
+.hero-label{font-size:10px;font-weight:900;letter-spacing:3px;color:var(--pink);margin-bottom:8px}
+.table-code{font-size:40px;font-weight:900;letter-spacing:6px;color:var(--black);margin-bottom:6px}
+.hero-sub{font-size:12px;color:var(--text-3);margin-bottom:16px}
+.avatar-row{display:flex;justify-content:center;align-items:center}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--pink);border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;margin-left:-8px}
+.avatar:first-child{margin-left:0}
+.member-count{font-size:12px;color:var(--text-3);margin-left:10px}
+.drink-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.drink-chip{padding:7px 14px;border-radius:999px;border:1px solid var(--border);background:var(--card);font-size:13px;font-weight:500;color:var(--text-2);cursor:pointer;font-family:inherit;transition:all 0.12s}
+.drink-chip.selected{background:var(--pink);border-color:var(--pink);color:#fff;font-weight:800}
+.starter-card{background:var(--card);border-radius:12px;border:0.5px solid var(--border);padding:14px 16px;margin-bottom:8px}
+.starter-cat{font-size:10px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:var(--pink);margin-bottom:6px}
+.starter-text{font-size:14px;color:var(--black);line-height:1.5;font-weight:500}
+.hint{font-size:12px;color:var(--text-3);text-align:center;margin-top:10px}
+.loading{text-align:center;padding:40px 20px;color:var(--text-3);font-size:14px;font-style:italic}
+.ghost-btn{width:100%;padding:14px;border-radius:999px;border:1px solid var(--border);background:transparent;color:var(--text-3);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- SPLASH -->
+<div id="splash">
+  <img src="/static/hero.png" alt="A Good Time Daiquiri — Party in a Box">
+  <div class="splash-bottom">
+    <p class="splash-sub">Download the app now and enjoy drink recipes and connection.</p>
+    <button class="splash-btn" onclick="enterApp()">Enter App</button>
+  </div>
+</div>
+
+<!-- RECIPES -->
+<div id="page-recipes" class="page">
+  <div class="page-header">
+    <div class="brand-script">A Good Time</div>
+    <div class="brand-sans">DAIQUIRI LOUNGE</div>
+  </div>
+  <div class="search-wrap">
+    <input type="search" id="search" placeholder="Search drinks..." oninput="filterRecipes()">
+  </div>
+  <div class="chip-row" id="chip-row"></div>
+  <div id="recipe-list"><div class="loading">Pouring your menu...</div></div>
+</div>
+
+<!-- CONNECT -->
+<div id="page-connect" class="page">
+  <div class="page-header">
+    <div class="brand-script">Connect</div>
+    <div class="brand-sans">FOR TWO, WITH INTENTION</div>
+  </div>
+
+  <div class="section-label">Conversation starters</div>
+  <div class="prompt-counter-row">
+    <span class="prompt-counter" id="prompt-counter">1 OF 12</span>
+    <span class="prompt-cat-label" id="prompt-cat-label"></span>
+  </div>
+
+  <!-- Sliding cards -->
+  <div class="card-slider">
+    <div class="card-track" id="card-track"></div>
+  </div>
+
+  <!-- Nav -->
+  <div class="prompt-nav">
+    <button class="btn-prev" onclick="prevPrompt()">← Prev</button>
+    <button class="btn-next" onclick="nextPrompt()">Next →</button>
+  </div>
+
+  <!-- Dots -->
+  <div class="dot-row" id="dot-row"></div>
+
+  <div class="section-label" style="margin-top:8px">Fun challenges</div>
+  <div class="content-card">
+    <h3>Left-handed drawing challenge</h3>
+    <p>Pick an object and draw it together using your non-dominant hands — 3 minutes on the clock. Laugh at the results. Bonus points for the most abstract interpretation.</p>
+  </div>
+  <div class="content-card">
+    <h3>Memory challenge</h3>
+    <p>In 2 minutes, write about a moment that made you feel truly loved. Share your responses and decide who captured it best. Bonus points for creativity.</p>
+  </div>
+
+  <div class="section-label" style="margin-top:8px">Navigate conflict together</div>
+  <div class="content-card">
+    <p style="margin-bottom:4px;font-size:13px;color:var(--text-2)">A 5-step framework for working through any problem as a team.</p>
+    <div class="step-row"><div class="step-badge">1</div><div class="step-info"><strong>Clarification</strong><span>Ask questions to fully understand the issue before reacting.</span></div></div>
+    <div class="step-row"><div class="step-badge">2</div><div class="step-info"><strong>Perspective taking</strong><span>Explore emotions and viewpoints to build empathy.</span></div></div>
+    <div class="step-row"><div class="step-badge">3</div><div class="step-info"><strong>Identifying needs</strong><span>Uncover the core needs driving each concern.</span></div></div>
+    <div class="step-row"><div class="step-badge">4</div><div class="step-info"><strong>Exploring solutions</strong><span>Brainstorm resolutions that address those needs together.</span></div></div>
+    <div class="step-row"><div class="step-badge">5</div><div class="step-info"><strong>Reflect and confirm</strong><span>Summarize and confirm next steps so you are aligned.</span></div></div>
+  </div>
+
+  <div class="quote-block"><p>Age does not protect you from love, but love protects you from age.</p><cite>— Jeanne Moreau</cite></div>
+  <div class="quote-block" style="margin-bottom:40px"><p>Being deeply loved by someone gives you strength, while loving someone deeply gives you courage.</p><cite>— Lao Tzu</cite></div>
+</div>
+
+<!-- TABLE -->
+<div id="page-table" class="page">
+  <div class="page-header">
+    <div class="brand-script">My Table</div>
+    <div class="brand-sans">PARTY IN A BOX</div>
+  </div>
+  <div id="table-locked">
+    <p style="font-size:14px;color:var(--text-2);margin-bottom:20px;line-height:1.6">Scan the QR on your box to unlock your session and invite friends.</p>
+    <div class="content-card">
+      <label class="field-label">Box code</label>
+      <input class="field-input" id="box-code" placeholder="e.g. DEMO42" style="text-transform:uppercase">
+      <label class="field-label">Your name</label>
+      <input class="field-input" id="nickname" placeholder="e.g. Julie">
+      <button class="btn" onclick="unlockTable()">UNLOCK TABLE</button>
+      <div class="hint">Use code DEMO42 to test</div>
+    </div>
+  </div>
+  <div id="table-session" style="display:none">
+    <div class="table-hero">
+      <div class="hero-label">TABLE CODE</div>
+      <div class="table-code" id="session-code"></div>
+      <div class="hero-sub">Share with friends to join this session</div>
+      <div class="avatar-row" id="avatar-row"></div>
+    </div>
+    <div class="section-label">What did you order?</div>
+    <div class="drink-grid" id="drink-grid"></div>
+    <button class="btn" id="gen-btn" onclick="generateStarters()">GET CONVERSATION STARTERS</button>
+    <div id="error-msg"></div>
+    <div id="starters-out"></div>
+    <button class="ghost-btn" onclick="leaveTable()">Leave table</button>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="switchTab('recipes')" id="nav-recipes"><span class="icon">♨</span>Recipes</button>
+  <button class="nav-btn" onclick="switchTab('connect')" id="nav-connect"><span class="icon">♥</span>Connect</button>
+  <button class="nav-btn" onclick="switchTab('table')" id="nav-table"><span class="icon">★</span>My table</button>
+</nav>
+</div>
+
+<script>
+let allRecipes=[],activeFilter='All',selectedDrinks=new Set()
+let session=JSON.parse(localStorage.getItem('daiquiri_session')||'null')
+let currentPrompt=0
+
+const FILTERS=['All','All-time favorite','New favorite','Cocktail','Mocktail','Exclusive']
+const PROMPTS=[
+  {cat:'Relationship', q:'If you could choose a theme song for our relationship right now, what would it be?'},
+  {cat:'Dreams',       q:'If we had unlimited money for one weekend, what would we do?'},
+  {cat:'Self-reflection',q:"What is your biggest strength and how do you use it in our relationship?"},
+  {cat:'Growth',       q:"What is one area of your life you want to improve, and what steps can you take?"},
+  {cat:'Identity',     q:'If you could describe yourself in three words, what would they be and why?'},
+  {cat:'Connection',   q:'How do you want to feel in our relationship, and how can we create that together?'},
+  {cat:'Memory',       q:"What is a memory that always reminds you of who you are at your core?"},
+  {cat:'Intimacy',     q:'What does intimacy mean to you now, and how can we redefine it together?'},
+  {cat:'Appreciation', q:'What makes you feel most appreciated or desired in our relationship?'},
+  {cat:'Fun',          q:'If you could invent a holiday, what would it celebrate and how would people honor it?'},
+  {cat:'Parenting',    q:'What values do you hope to instill in our children as they grow?'},
+  {cat:'Legacy',       q:"What is the biggest accomplishment you want your children to watch you attain?"},
+]
+
+// ── SPLASH ──────────────────────────────────────────────────────────────
+function enterApp(){
+  document.getElementById('splash').style.display='none'
+  switchTab('recipes')
+}
+
+// ── TABS ─────────────────────────────────────────────────────────────────
+function switchTab(tab){
+  ['recipes','connect','table'].forEach(t=>{
+    document.getElementById('page-'+t).classList.toggle('active',t===tab)
+    document.getElementById('nav-'+t).classList.toggle('active',t===tab)
+  })
+  if(tab==='table') renderTableTab()
+  if(tab==='connect') initSlider()
+}
+
+// ── RECIPES ──────────────────────────────────────────────────────────────
+async function loadRecipes(){
+  try{
+    const res=await fetch('/recipes')
+    const data=await res.json()
+    allRecipes=Object.entries(data.recipes).map(([id,r])=>({id,...r}))
+    renderChips();renderRecipes()
+  }catch{
+    document.getElementById('recipe-list').innerHTML='<div class="loading">Could not load recipes. Is the backend running?</div>'
+  }
+}
+function renderChips(){
+  document.getElementById('chip-row').innerHTML=FILTERS.map(f=>
+    `<button class="chip ${activeFilter===f?'active':''}" onclick="setFilter('${f}')">${f}</button>`
+  ).join('')
+}
+function setFilter(f){activeFilter=f;renderChips();renderRecipes()}
+function filterRecipes(){renderRecipes()}
+function badgeClass(cat){
+  if(cat==='Mocktail') return 'badge-mock'
+  if(cat==='New favorite') return 'badge-new'
+  if(cat==='Exclusive') return 'badge-excl'
+  if(cat==='Cocktail') return 'badge-cock'
+  return 'badge-fav'
+}
+function renderRecipes(){
+  const q=document.getElementById('search').value.toLowerCase()
+  const list=allRecipes.filter(r=>{
+    const mf=activeFilter==='All'||r.category===activeFilter
+    const ms=!q||r.name.toLowerCase().includes(q)||r.description?.toLowerCase().includes(q)
+    return mf&&ms
+  })
+  if(!list.length){document.getElementById('recipe-list').innerHTML='<div class="loading">No drinks match.</div>';return}
+  document.getElementById('recipe-list').innerHTML=list.map(r=>`
+    <div class="card" id="card-${r.id}">
+      <div class="card-header" onclick="toggleCard('${r.id}')">
+        <div class="card-left">
+          <div class="card-name">${r.name}</div>
+          <div class="card-desc">${r.description||''}</div>
+        </div>
+        <div class="card-right">
+          <span class="badge ${badgeClass(r.category)}">${r.category}</span>
+          <span class="chevron" id="chev-${r.id}">&#9660;</span>
+        </div>
+      </div>
+      <div class="card-detail">
+        <div class="detail-label">Ingredients</div>
+        <ul class="ing-list">${(r.ingredients||[]).map(i=>`<li>${i}</li>`).join('')}</ul>
+        <div class="detail-label">Instructions</div>
+        <ol class="step-list">${(r.steps||[]).map(s=>`<li>${s}</li>`).join('')}</ol>
+        ${r.garnish?`<div class="garnish-pill"><strong>Garnish</strong><span>${r.garnish}</span></div>`:''}
+      </div>
+    </div>`).join('')
+}
+function toggleCard(id){
+  const card=document.getElementById('card-'+id)
+  const chev=document.getElementById('chev-'+id)
+  card.classList.toggle('open')
+  chev.innerHTML=card.classList.contains('open')?'&#9650;':'&#9660;'
+}
+
+// ── CONNECT SLIDER ────────────────────────────────────────────────────────
+let sliderReady=false
+function initSlider(){
+  if(sliderReady) return
+  sliderReady=true
+  const track=document.getElementById('card-track')
+  track.innerHTML=PROMPTS.map(p=>
+    `<div class="prompt-slide" onclick="nextPrompt()"><p>${p.q}</p></div>`
+  ).join('')
+  renderDots()
+  showSlide(0)
+}
+function showSlide(i){
+  currentPrompt=i
+  const track=document.getElementById('card-track')
+  track.style.transform=`translateX(-${i*100}%)`
+  document.getElementById('prompt-counter').textContent=(i+1)+' OF '+PROMPTS.length
+  document.getElementById('prompt-cat-label').textContent=PROMPTS[i].cat
+  renderDots()
+}
+function nextPrompt(){showSlide((currentPrompt+1)%PROMPTS.length)}
+function prevPrompt(){showSlide((currentPrompt-1+PROMPTS.length)%PROMPTS.length)}
+function renderDots(){
+  document.getElementById('dot-row').innerHTML=PROMPTS.map((_,i)=>
+    `<div class="dot ${i===currentPrompt?'active':''}" onclick="showSlide(${i})"></div>`
+  ).join('')
+}
+
+// ── TABLE ─────────────────────────────────────────────────────────────────
+function renderTableTab(){
+  if(session){
+    document.getElementById('table-locked').style.display='none'
+    document.getElementById('table-session').style.display='block'
+    document.getElementById('session-code').textContent=session.table_code
+    const members=session.members||[session.nickname]
+    document.getElementById('avatar-row').innerHTML=
+      members.slice(0,5).map(m=>`<div class="avatar">${m[0].toUpperCase()}</div>`).join('')+
+      `<span class="member-count">${members.length} at the table</span>`
+    renderDrinkGrid()
+  }
+}
+function renderDrinkGrid(){
+  document.getElementById('drink-grid').innerHTML=allRecipes.map(r=>
+    `<button class="drink-chip ${selectedDrinks.has(r.id)?'selected':''}" onclick="toggleDrink('${r.id}')">${r.name}</button>`
+  ).join('')
+}
+function toggleDrink(id){
+  selectedDrinks.has(id)?selectedDrinks.delete(id):selectedDrinks.add(id)
+  renderDrinkGrid()
+  document.getElementById('starters-out').innerHTML=''
+}
+async function unlockTable(){
+  const code=document.getElementById('box-code').value.trim().toUpperCase()
+  const name=document.getElementById('nickname').value.trim()
+  if(!code||!name){alert('Enter both your box code and a nickname.');return}
+  try{
+    const res=await fetch('/table/unlock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({box_code:code,nickname:name})})
+    if(!res.ok){const e=await res.json();throw new Error(e.detail||'Invalid code')}
+    const data=await res.json()
+    session={...data,nickname:name}
+    localStorage.setItem('daiquiri_session',JSON.stringify(session))
+    renderTableTab()
+  }catch(e){alert(e.message)}
+}
+async function generateStarters(){
+  if(!selectedDrinks.size) return
+  const btn=document.getElementById('gen-btn')
+  btn.disabled=true;btn.textContent='GENERATING...'
+  document.getElementById('starters-out').innerHTML=''
+  document.getElementById('error-msg').innerHTML=''
+  try{
+    await fetch('/table/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({table_code:session.table_code,nickname:session.nickname,drink_ids:[...selectedDrinks]})})
+    const res=await fetch('/starters',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({drink_ids:[...selectedDrinks],table_code:session.table_code})})
+    const data=await res.json()
+    document.getElementById('starters-out').innerHTML=
+      '<div class="section-label">Tonight\'s starters</div>'+
+      (data.starters||[]).map(s=>`<div class="starter-card"><div class="starter-cat">${s.category}</div><div class="starter-text">${s.text}</div></div>`).join('')
+  }catch{
+    document.getElementById('error-msg').innerHTML='<div style="color:var(--pink);font-size:13px;text-align:center;margin-bottom:12px">Could not generate starters. Try again.</div>'
+  }finally{btn.disabled=false;btn.textContent='REGENERATE'}
+}
+function leaveTable(){
+  localStorage.removeItem('daiquiri_session')
+  session=null;selectedDrinks=new Set()
+  document.getElementById('table-locked').style.display='block'
+  document.getElementById('table-session').style.display='none'
+  document.getElementById('starters-out').innerHTML=''
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+loadRecipes()
+if(session) renderTableTab()
+</script>
+</body>
+</html>
